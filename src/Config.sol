@@ -10,10 +10,6 @@ library Config {
     uint256 constant BASE_CHAIN_ID = 8453;
     uint256 constant BASE_SEPOLIA_CHAIN_ID = 84532;
 
-    // Contract addresses
-    address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address constant UNISWAP_V3_FACTORY = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
-
     // Custom errors
     error UnsupportedChainId(uint256 chainId);
 
@@ -31,11 +27,13 @@ library Config {
         }
     }
 
-    function getWeth9() internal pure returns (address) {
-        return WETH;
+    function getWeth9() internal view returns (address) {
+        Vm vm = Vm(address(uint160(uint256(keccak256('hevm cheat code')))));
+        return vm.envAddress('WETH9');
     }
 
-    function getUniswapV3Factory() internal pure returns (address) {
-        return UNISWAP_V3_FACTORY;
+    function getUniswapV3Factory() internal view returns (address) {
+        Vm vm = Vm(address(uint160(uint256(keccak256('hevm cheat code')))));
+        return vm.envAddress('UNISWAP_V3_FACTORY');
     }
 } 

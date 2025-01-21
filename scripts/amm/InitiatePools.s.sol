@@ -20,10 +20,9 @@ contract InitiatePools is Script {
 
     // Helper function to calculate sqrtPriceX96
     function calculateSqrtPriceX96(uint256 price) internal pure returns (uint160) {
-        // price is now in tokens/ETH
-        // We need ETH/token price = 1/price
-        uint256 ethPerToken = 1e18 / price;  // Use 1e18 for precision
-        uint256 sqrtPrice = Math.sqrt(ethPerToken * (1e18));
+        // price is in wei/token (e.g., 1e13 for 0.00001 ETH)
+        // sqrt(price) * 2^96
+        uint256 sqrtPrice = Math.sqrt(price * (1e18)); // Multiply by 1e18 for better precision
         return uint160((sqrtPrice * (1 << 96)) / Math.sqrt(1e18));
     }
 
@@ -32,9 +31,8 @@ contract InitiatePools is Script {
         console.log("Chain ID:", block.chainid);
         printMyInfo();
 
-        // Initialize configs - using static method instead of creating new instance
-        address addressRegistryAddr = Config.getAddressRegistryForChain();
-        addressRegistry = IAddressRegistry(addressRegistryAddr);
+        // Initialize configs
+        addressRegistry = IAddressRegistry(Config.getAddressRegistryForChain());
         
         console.log("\n=== Configuration ===");
         console.log("POOL_FEE:\t", POOL_FEE);
@@ -49,15 +47,15 @@ contract InitiatePools is Script {
         console.log("\n=== Token Addresses ===");
         console.log("Coins Token:", coinsAddr);
         console.log("Stocks Token:", stocksAddr);
-        console.log("WETH:", Config.getWeth9());
+        console.log("WETH:", Config.weth9());
         
         // Create pools and initialize
-        IUniswapV3Factory factory = IUniswapV3Factory(Config.getUniswapV3Factory());
+        IUniswapV3Factory factory = IUniswapV3Factory(Config.uniswapV3Factory());
         console.log("Uniswap Factory:", address(factory));
 
         // Get existing pools
-        address coinsWethPool = factory.getPool(coinsAddr, Config.getWeth9(), POOL_FEE);
-        address stocksWethPool = factory.getPool(stocksAddr, Config.getWeth9(), POOL_FEE);
+        address coinsWethPool = factory.getPool(coinsAddr, Config.weth9(), POOL_FEE);
+        address stocksWethPool = factory.getPool(stocksAddr, Config.weth9(), POOL_FEE);
         
         // Calculate sqrt prices
         uint160 coinsSqrtPrice = calculateSqrtPriceX96(COINS_PRICE);
@@ -69,15 +67,15 @@ contract InitiatePools is Script {
         console.log("\n=== Pool Operations ===");
         
         // Create and initialize COINS/WETH pool
-        address token0 = coinsAddr < Config.getWeth9() ? coinsAddr : Config.getWeth9();
-        address token1 = coinsAddr < Config.getWeth9() ? Config.getWeth9() : coinsAddr;
+        address token0 = coinsAddr < Config.weth9() ? coinsAddr : Config.weth9();
+        address token1 = coinsAddr < Config.weth9() ? Config.weth9() : coinsAddr;
         coinsWethPool = factory.createPool(token0, token1, POOL_FEE);
         IUniswapV3Pool(coinsWethPool).initialize(coinsSqrtPrice);
         console.log("[SUCCESS] Created and initialized new COINS/WETH pool at:", coinsWethPool);
 
         // Create and initialize STOCKS/WETH pool
-        token0 = stocksAddr < Config.getWeth9() ? stocksAddr : Config.getWeth9();
-        token1 = stocksAddr < Config.getWeth9() ? Config.getWeth9() : stocksAddr;
+        token0 = stocksAddr < Config.weth9() ? stocksAddr : Config.weth9();
+        token1 = stocksAddr < Config.weth9() ? Config.weth9() : stocksAddr;
         stocksWethPool = factory.createPool(token0, token1, POOL_FEE);
         IUniswapV3Pool(stocksWethPool).initialize(stocksSqrtPrice);
         console.log("[SUCCESS] Created and initialized new STOCKS/WETH pool at:", stocksWethPool);

@@ -6,8 +6,8 @@ library PoolConfig {
     uint24 public constant POOL_FEE = 3000; // 0.3% fee tier
     
     // Initial prices in terms of tokens per ETH
-    uint256 public constant COINS_PRICE = 8e13;  // 80,000 COINS per 1 ETH (for 1e27 total supply)
-    uint256 public constant STOCKS_PRICE = 8e14;  // 800,000 STOCKS per 1 ETH (for 1e28 total supply)
+    uint256 public constant COINS_PRICE = 8e22;  // 80,000 COINS per 1 ETH (for 1e27 total supply)
+    uint256 public constant STOCKS_PRICE = 8e23;  // 800,000 STOCKS per 1 ETH (for 1e28 total supply)
 
     // Tick ranges
     // int24 public constant MIN_TICK = -887272;

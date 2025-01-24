@@ -62,11 +62,9 @@ contract DeployLiquidity is Script {
     }
 
     function setupWETHAndApprovals() internal {
-        // Wrap a small amount of ETH (0.001 ETH = 1e15 wei for each pool)
         console.log("Depositing ETH to get WETH...");
-        uint256 liquidityAmount = 1e15; // 0.001 ETH
         address weth = addressRegistry.getAddress('WETH9');
-        IWETH9(weth).deposit{value: 2 * liquidityAmount}(); // 0.002 ETH total for both pools
+        IWETH9(weth).deposit{value: 2 * PoolConfig.LIQUIDITY_AMOUNT}();
 
         // Create and initialize nonfungible position manager
         address positionManagerAddr = addressRegistry.getAddress('NonfungiblePositionManager');
@@ -76,9 +74,9 @@ contract DeployLiquidity is Script {
         // Approve tokens
         address coinsAddr = addressRegistry.getAddress('Coins');
         address stocksAddr = addressRegistry.getAddress('StockOptions');
-        IERC20(coinsAddr).approve(address(positionManager), PoolConfig.LIQUIDITY_AMOUNT / PoolConfig.COINS_PRICE);
-        IERC20(stocksAddr).approve(address(positionManager), PoolConfig.LIQUIDITY_AMOUNT / PoolConfig.STOCKS_PRICE);
-        IERC20(weth).approve(address(positionManager), 2 * liquidityAmount);
+        IERC20(coinsAddr).approve(address(positionManager), PoolConfig.LIQUIDITY_AMOUNT * PoolConfig.COINS_PRICE);
+        IERC20(stocksAddr).approve(address(positionManager), PoolConfig.LIQUIDITY_AMOUNT * PoolConfig.STOCKS_PRICE);
+        IERC20(weth).approve(address(positionManager), 2 * PoolConfig.LIQUIDITY_AMOUNT);
     }
 
     function initializePoolsIfNeeded() internal {
@@ -110,7 +108,7 @@ contract DeployLiquidity is Script {
         address coinsAddr = addressRegistry.getAddress('Coins');
         address weth = addressRegistry.getAddress('WETH9');
 
-        uint256 wethAmount = 5e14; // 0.0005 ETH
+        uint256 wethAmount = PoolConfig.LIQUIDITY_AMOUNT; // 0.0005 ETH
         // Use less than half of COINS supply (1e27/2)
         uint256 coinsAmount = 4e26; // Less than half of 1e27
         
@@ -154,7 +152,7 @@ contract DeployLiquidity is Script {
         address stocksAddr = addressRegistry.getAddress('StockOptions');
         address weth = addressRegistry.getAddress('WETH9');
 
-        uint256 wethAmount = 5e14; // 0.0005 ETH
+        uint256 wethAmount = PoolConfig.LIQUIDITY_AMOUNT; // 0.0005 ETH
         // Use less than half of STOCKS supply (1e28/2)
         uint256 stocksAmount = 4e27; // Less than half of 1e28
         
@@ -220,7 +218,8 @@ contract DeployLiquidity is Script {
     }
 
     function calculateSqrtPriceX96(uint256 price) internal pure returns (uint160) {
-        uint256 sqrtPrice = Math.sqrt(price);
-        return uint160(sqrtPrice << 96);
+        // Convert price to sqrt(price/1e18) * 2^96
+        uint256 sqrtPrice = Math.sqrt(price / 1e18) * (1 << 96);
+        return uint160(sqrtPrice);
     }
 }

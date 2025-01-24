@@ -20,10 +20,9 @@ contract InitiatePools is Script {
 
     // Helper function to calculate sqrtPriceX96
     function calculateSqrtPriceX96(uint256 price) internal pure returns (uint160) {
-        // price is in wei/token (e.g., 1e13 for 0.00001 ETH)
-        // sqrt(price) * 2^96
-        uint256 sqrtPrice = Math.sqrt(price * (1e18)); // Multiply by 1e18 for better precision
-        return uint160((sqrtPrice * (1 << 96)) / Math.sqrt(1e18));
+        // Convert price to sqrt(price/1e18) * 2^96
+        uint256 sqrtPrice = Math.sqrt(price / 1e18) * (1 << 96);
+        return uint160(sqrtPrice);
     }
 
     function run() external {
